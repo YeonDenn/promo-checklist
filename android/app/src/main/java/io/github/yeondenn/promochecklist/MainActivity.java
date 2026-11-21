@@ -49,11 +49,17 @@ public class MainActivity extends Activity {
     private boolean handle(Uri uri) {
         String scheme = uri.getScheme() == null ? "" : uri.getScheme();
 
-        // applaunch://open?pkg=<패키지>&url=<앱이 없을 때 열 주소>
+        // applaunch://open?pkg=<패키지[,패키지]>&url=<앱이 없을 때 열 주소>
         if (scheme.equals("applaunch")) {
             String pkg = uri.getQueryParameter("pkg");
             String fallback = uri.getQueryParameter("url");
-            Intent launch = pkg == null ? null : getPackageManager().getLaunchIntentForPackage(pkg);
+            Intent launch = null;
+            // pkg는 쉼표로 여러 개일 수 있다. 앞에서부터 설치된 것을 연다.
+            for (String one : (pkg == null ? "" : pkg).split(",")) {
+                if (launch == null && !one.trim().isEmpty()) {
+                    launch = getPackageManager().getLaunchIntentForPackage(one.trim());
+                }
+            }
             if (launch != null) {
                 startActivity(launch);
             } else if (fallback != null) {

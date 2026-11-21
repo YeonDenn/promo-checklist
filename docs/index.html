@@ -208,7 +208,7 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
   function launchHref(p) {
     if (!p.pkg) return p.web;
     if (IN_APP) return 'applaunch://open?pkg=' + encodeURIComponent(p.pkg) + '&url=' + encodeURIComponent(p.web);
-    if (IS_ANDROID) return 'intent://' + p.web.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=' + p.pkg + ';S.browser_fallback_url=' + encodeURIComponent(p.web) + ';end';
+    if (IS_ANDROID) return 'intent://' + p.web.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=' + p.pkg.split(',')[0] + ';S.browser_fallback_url=' + encodeURIComponent(p.web) + ';end';
     return p.web;
   }
   D.phases.forEach(function (ph) {

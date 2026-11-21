@@ -10,7 +10,7 @@ window.DATA = {
     ru: { name: '러시아', color: '#2f9e6e', time: '올리기 좋은 시간: 한국 18~21시 (모스크바 낮)' }
   },
 
-  // pkg: 안드로이드 패키지 이름. 폰에서 확인한 값으로 고친다.
+  // pkg: 안드로이드 패키지 이름. 쉼표로 여러 개를 적으면 앞에서부터 설치된 것을 연다.
   platforms: [
     {
       id: 'xiaoheihe', region: 'cn', name: '샤오헤이허', native: '小黑盒', tier: '메인',
@@ -23,7 +23,7 @@ window.DATA = {
     },
     {
       id: 'bilibili', region: 'cn', name: '빌리빌리', native: '哔哩哔哩', tier: '메인',
-      web: 'https://www.bilibili.com/', pkg: 'tv.danmaku.bili',
+      web: 'https://www.bilibili.com/', pkg: 'com.bilibili.app.in,tv.danmaku.bili',
       about: '영상 중심. 탄막과 댓글 문화. 개발일지(开发日志) 시리즈가 흔하다. +82 번호 가입(앞자리 0 빼고), 여권 실명 인증 약 하루.',
       post: '동태(动态): 1~3문장 + 움짤 + #태그#. 영상: 제목 【独立游戏开发日志#N】…, 최대 80자, 중국어 자막 필수.',
       tone: '부르는 말 大家. 영상 첫마디 "大家好，我们是…".',
