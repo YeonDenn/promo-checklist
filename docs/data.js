@@ -112,7 +112,7 @@ window.DATA = {
     },
     {
       id: 'pikabu', region: 'ru', name: 'Pikabu', native: 'Пикабу', tier: '퍼 나르기',
-      web: 'https://pikabu.ru/', pkg: 'ru.pikabu.android',
+      web: 'https://pikabu.ru/', pkg: '', // 구글 플레이에 공식 앱이 없어 폰 브라우저로 쓴다(2026-11-21 확인)
       about: '대형 잡글 커뮤니티. 광고 금지, 자기 작품은 «Моё» 태그. 새 계정은 평점이 필요할 수 있다.',
       post: 'DTF 글을 이야기체로 다듬어서 + 이미지. 태그 Моё, Gamedev, Инди, Pixel Art.',
       tone: '첫인사 "Привет, Пикабу!". 이야기하듯.',
