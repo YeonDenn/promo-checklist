@@ -3,6 +3,13 @@
 window.DATA = {
   warmupDays: 14,
 
+  // 플랫폼마다 계정을 두 개 쓴다. 일반 계정은 폰, 개발 계정은 PC 브라우저가 기본이다.
+  // 할 일의 acct 를 비워 두면: 글 올리기(post)는 개발, 플랫폼이 붙은 그 밖의 일은 일반으로 본다.
+  accounts: {
+    gen: { name: '일반', color: '#8a8f9c', desc: '포럼을 돌아다니며 댓글과 잡글을 쓰는 계정 (폰)' },
+    dev: { name: '개발', color: '#a56bd6', desc: '개발일지를 올리는 계정 (PC)' }
+  },
+
   regions: {
     all: { name: '공통', color: '#7a7f8c' },
     cn: { name: '중국', color: '#d9483b', time: '올리기 좋은 시간: 한국 13~14시, 20~24시' },
@@ -14,7 +21,7 @@ window.DATA = {
   platforms: [
     {
       id: 'xiaoheihe', region: 'cn', name: '샤오헤이허', native: '小黑盒', tier: '메인',
-      web: 'https://www.xiaoheihe.cn/', pkg: 'com.max.xiaoheihe', signup: '2026-11-18',
+      web: 'https://www.xiaoheihe.cn/', pkg: 'com.max.xiaoheihe', signup: { gen: '2026-11-18' },
       about: '스팀 유저 앱. 게임별 커뮤니티 구조이고 잡담 게시판은 盒友杂谈. 위시리스트로 바로 이어진다.',
       post: '개발일지 글 + 이미지. 제목에 【开发日志】 머리말, 제목에 질문을 넣으면 댓글이 늘어난다.',
       tone: '부르는 말 各位盒友. 친근하고 들뜬 톤, 啦/呀/哈哈와 이모지 자연스러움.',
@@ -154,8 +161,11 @@ window.DATA = {
 
   // 매일 할 일. star: 바쁜 날에도 하는 것
   daily: [
-    { id: 'd-notif', region: 'all', star: true, title: '알림 확인: 댓글·멘션·쪽지에 24시간 안에 답하기',
-      detail: '모든 플랫폼을 한 번씩 열어 본다. 번역기를 써도 되지만 같은 답글을 복사해 달지 않는다(봇처럼 보여 제재).',
+    { id: 'd-notif', region: 'all', acct: 'gen', star: true, title: '일반 계정 알림 확인: 댓글·멘션·쪽지에 24시간 안에 답하기',
+      detail: '폰에서 플랫폼을 한 번씩 열어 본다. 번역기를 써도 되지만 같은 답글을 복사해 달지 않는다(봇처럼 보여 제재).',
+      platforms: ['xiaoheihe', 'bilibili', 'xiaohongshu', 'x', 'dtf', 'pikabu'] },
+    { id: 'd-notif-dev', region: 'all', acct: 'dev', star: true, title: '개발 계정 알림 확인: 내 글에 달린 댓글에 답하기',
+      detail: 'PC에서 개발 계정으로 확인한다. 일반 계정으로 내 글에 모르는 사람인 척 답하지 않는다.',
       platforms: ['xiaoheihe', 'bilibili', 'xiaohongshu', 'x', 'dtf', 'pikabu'] },
     { id: 'd-log', region: 'all', title: '전날 올린 글의 조회·좋아요·댓글 수 기록',
       detail: '기록 탭의 반응 기록에 숫자를 채운다. 어느 플랫폼에 힘을 줄지 판단하는 근거가 된다.' },
@@ -182,14 +192,14 @@ window.DATA = {
     { id: 'd-jp-wip', region: 'jp', title: '(작업 중인 도트가 있으면) 작업 장면 한 장 올리기',
       detail: '주간 정기 글과 별개. 하루 1개까지. 겸손하게 "〜してみました" 톤.',
       platforms: ['x'], post: ['x'] },
-    { id: 'd-jp-thanks', region: 'jp', title: '언급·리트윗해 준 개발자에게 감사 답글, 맞팔로우 검토',
+    { id: 'd-jp-thanks', region: 'jp', acct: 'dev', title: '언급·리트윗해 준 개발자에게 감사 답글, 맞팔로우 검토',
       detail: 'ありがとうございます！励みになります✨',
       platforms: ['x'] },
 
     { id: 'd-ru-dtf', region: 'ru', star: true, title: 'DTF: 인디·게임 개발 글 1~2개에 댓글',
       detail: '평판이 쌓여야 내 글도 노출이 잘 된다. 한국 저녁 6~9시가 모스크바 낮.',
       platforms: ['dtf'] },
-    { id: 'd-ru-reply', region: 'ru', title: 'DTF·Pikabu 내 글 댓글에 답하기 (아침에 확인)',
+    { id: 'd-ru-reply', region: 'ru', acct: 'dev', title: 'DTF·Pikabu 내 글 댓글에 답하기 (아침에 확인)',
       detail: '러시아는 한국 새벽에 댓글이 몰린다. 과장 없이 솔직하게, 정치 이야기는 답하지 않는다.',
       platforms: ['dtf', 'pikabu'] },
     { id: 'd-ru-pikabu', region: 'ru', title: 'Pikabu: 게임 개발 글 훑어보고 댓글 1개',
@@ -254,17 +264,27 @@ window.DATA = {
   // 단계별 한 번만 하는 일
   phases: [
     { id: 0, name: '0단계: 상점 페이지 공개 전', items: [
-      { id: 'o-0-heybox', title: '샤오헤이허 가입', platforms: ['xiaoheihe'], done: true },
-      { id: 'o-0-bili', title: '빌리빌리 가입 (+82, 앞자리 0 빼고) + 여권 실명 인증', platforms: ['bilibili'] },
-      { id: 'o-0-xhs', title: '샤오훙수 가입 (+82) + 외국인 여권 실명 인증', platforms: ['xiaohongshu'] },
-      { id: 'o-0-cnopt', title: '(선택) 티에바, Keylol, 웨이보 가입 시도. 한국 번호가 안 되면 보류', platforms: ['tieba', 'keylol', 'weibo'] },
-      { id: 'o-0-x', title: '일본어 전용 X 계정 만들기', platforms: ['x'] },
-      { id: 'o-0-jp', title: 'note, niconico 가입', platforms: ['note', 'niconico'] },
-      { id: 'o-0-ru', title: 'DTF, Pikabu 가입', platforms: ['dtf', 'pikabu'] },
-      { id: 'o-0-vk', title: 'VK 가입 시도 + 공식 그룹 (한국 번호 확인)', platforms: ['vk'] },
-      { id: 'o-0-id', title: '모든 플랫폼 아이디를 같은 이름으로' },
-      { id: 'o-0-profile', title: '프로필 사진과 소개문을 각 언어로' },
-      { id: 'o-0-warm', title: '플랫폼마다 1~2주 워밍업 (매일 할 일만 하고 홍보 글은 안 올림)' },
+      { id: 'o-0-heybox', acct: 'gen', title: '샤오헤이허 일반 계정 가입', platforms: ['xiaoheihe'], done: true },
+      { id: 'o-0-heybox-dev', acct: 'dev', title: '샤오헤이허 개발 계정 가입 (PC)', platforms: ['xiaoheihe'],
+        detail: '중국 플랫폼은 전화번호 하나에 계정 하나라서 다른 번호가 필요하다. 일반 계정을 쓰는 폰에서는 로그인하지 않는다.' },
+      { id: 'o-0-bili', acct: 'gen', title: '빌리빌리 일반 계정 가입 (+82, 앞자리 0 빼고)', platforms: ['bilibili'] },
+      { id: 'o-0-bili-dev', acct: 'dev', title: '빌리빌리 개발 계정 가입 (PC) + 여권 실명 인증', platforms: ['bilibili'],
+        detail: '다른 번호가 필요하다. 영상을 올리려면 실명 인증이 필요하다. 여권 하나로 계정 두 개를 인증할 수 있는지는 확인 필요.' },
+      { id: 'o-0-xhs', acct: 'gen', title: '샤오훙수 일반 계정 가입 (+82)', platforms: ['xiaohongshu'] },
+      { id: 'o-0-xhs-dev', acct: 'dev', title: '샤오훙수 개발 계정 가입 (PC) + 외국인 여권 실명 인증', platforms: ['xiaohongshu'],
+        detail: '다른 번호가 필요하다. 샤오훙수는 기기와 계정 연결에 특히 엄격하다고 알려져 있어 폰과 섞지 않는다.' },
+      { id: 'o-0-cnopt', acct: 'gen', title: '(선택) 티에바, Keylol, 웨이보 가입 시도. 한국 번호가 안 되면 보류', platforms: ['tieba', 'keylol', 'weibo'] },
+      { id: 'o-0-x', acct: 'gen', title: 'X 일본어 일반 계정 만들기', platforms: ['x'] },
+      { id: 'o-0-x-dev', acct: 'dev', title: 'X 일본어 개발 계정 만들기 (PC)', platforms: ['x'],
+        detail: 'X는 앱에서 계정 전환을 공식으로 지원한다. 폰에서도 쓰고 싶으면 바로가기 탭에서 위치를 "앱 안에서 전환"으로 바꾼다.' },
+      { id: 'o-0-jp', acct: 'dev', title: 'note, niconico 개발 계정 가입 (PC)', platforms: ['note', 'niconico'] },
+      { id: 'o-0-ru', acct: 'gen', title: 'DTF, Pikabu 일반 계정 가입', platforms: ['dtf', 'pikabu'] },
+      { id: 'o-0-ru-dev', acct: 'dev', title: 'DTF, Pikabu 개발 계정 가입 (PC)', platforms: ['dtf', 'pikabu'],
+        detail: 'Pikabu가 한 사람의 계정 두 개를 허용하는지 규칙을 먼저 확인한다. 안 되면 개발 계정 하나만 쓴다.' },
+      { id: 'o-0-vk', acct: 'dev', title: 'VK 개발 계정 가입 시도 + 공식 그룹 (한국 번호 확인)', platforms: ['vk'] },
+      { id: 'o-0-id', title: '개발 계정 아이디를 모든 플랫폼에서 같은 이름으로' },
+      { id: 'o-0-profile', title: '개발 계정 프로필 사진과 소개문을 각 언어로' },
+      { id: 'o-0-warm', title: '계정마다 1~2주 워밍업 (매일 할 일만 하고 홍보 글은 안 올림)' },
       { id: 'o-0-cnname', title: '중국어 게임 이름 정하기 (동료와 상의)' },
       { id: 'o-0-jpname', title: '일본어 표기 정하기 (영문 + 가타카나 읽기)' },
       { id: 'o-0-glossary', title: '핵심 용어를 3개 언어로 고정 (용어집)' },
@@ -274,10 +294,10 @@ window.DATA = {
     { id: 1, name: '1단계: 상점 페이지 공개', items: [
       { id: 'o-1-store', title: '상점 페이지 간체·일본어·러시아어 소개문 번역' },
       { id: 'o-1-utm', title: '플랫폼별 UTM 링크 만들기' },
-      { id: 'o-1-announce', title: '공개 당일 알림 글: 샤오헤이허, 빌리빌리 동태, 일본어 X, DTF', platforms: ['xiaoheihe', 'bilibili', 'x', 'dtf'] },
+      { id: 'o-1-announce', acct: 'dev', title: '공개 당일 알림 글: 샤오헤이허, 빌리빌리 동태, 일본어 X, DTF', platforms: ['xiaoheihe', 'bilibili', 'x', 'dtf'] },
       { id: 'o-1-press', title: '일본 웹진(4Gamer, Automaton, Game*Spark)에 보도자료 제보' },
       { id: 'o-1-kit', title: '프레스킷 번역본 (중·일·러)' },
-      { id: 'o-1-heyboxpage', title: '샤오헤이허 게임 페이지 등록 가능한지 확인 (开放平台)', platforms: ['xiaoheihe'] },
+      { id: 'o-1-heyboxpage', acct: 'dev', title: '샤오헤이허 게임 페이지 등록 가능한지 확인 (开放平台)', platforms: ['xiaoheihe'] },
       { id: 'o-1-links', title: '주간 글에 상점 링크 넣기 시작 (플랫폼별 링크 규칙 지키기)' },
       { id: 'o-1-post', title: '현지 느낌의 잡글 1개 올리고 반응 기록 (보류했던 과제 재개)' }
     ] },
@@ -312,6 +332,8 @@ window.DATA = {
   ],
 
   principles: [
+    '계정은 둘로 나눈다. 일반 계정은 폰에서 댓글과 잡글, 개발 계정은 PC에서 개발일지. 한 기기에 두 계정을 섞지 않는다.',
+    '일반 계정으로 개발 계정 글을 모르는 사람인 척 추천하거나 칭찬하지 않는다. 대부분의 플랫폼에서 정지 사유다.',
     '중국 앱은 한국 번호 + 집 인터넷 + 본인 폰 한 대. VPN을 쓰지 않는다. 실명 인증을 요구하면 받는다.',
     '가입 후 1~2주는 좋아요와 댓글만. 홍보나 외부 링크는 올리지 않는다.',
     '한 플랫폼에 홍보성 글은 주 1~2개까지. 나머지는 댓글과 교류.',

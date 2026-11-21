@@ -56,6 +56,10 @@ h2 small { font-weight: 400; font-size: 12px; }
 .task.done .title { color: var(--sub); text-decoration: line-through; }
 .star { color: var(--warn); margin-right: 2px; }
 .tag { display: inline-block; font-size: 11px; line-height: 1; padding: 3px 6px; border-radius: 4px; color: #fff; margin-left: 4px; vertical-align: 2px; }
+.tag.out { background: none; border: 1px solid currentColor; }
+.hint { font-size: 12px; color: var(--sub); align-self: center; }
+.acct { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.sep { flex: 0 0 1px; background: var(--line); margin: 4px 2px; }
 .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--warn-bg); color: var(--warn); margin-left: 4px; }
 .detail { margin-top: 8px; font-size: 14px; color: var(--sub); }
 .detail p { margin: 0 0 8px; overflow-wrap: anywhere; }
@@ -156,10 +160,12 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
   D.platforms.forEach(function (p) { P[p.id] = p; });
 
   // ---------- 저장 ----------
-  var S = { checks: {}, signup: {}, phase: 0, custom: [], log: [], filter: 'all', tab: 'today' };
+  var S = { checks: {}, acct: {}, phase: 0, custom: [], log: [], filter: 'all', fa: 'all', tab: 'today' };
   try {
     var raw = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (raw && typeof raw === 'object') for (var k in S) if (raw[k] !== undefined) S[k] = raw[k];
+    // 계정을 나누기 전에 저장한 가입일은 일반 계정 것으로 옮긴다.
+    if (raw && raw.signup && !raw.acct) for (var pid in raw.signup) S.acct[pid] = { gen: { signup: raw.signup[pid] } };
   } catch (e) {}
   var mt = /[?&]tab=(\w+)/.exec(location.search);
   if (mt) S.tab = mt[1];
@@ -197,13 +203,34 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
   function kPeriod(d, t) { return (t.period === 'month' ? 'm:' + monthKey(d) : 'b:' + biweekKey(d)) + ':' + t.id; }
 
   // ---------- 플랫폼 ----------
-  function signupOf(p) { var v = S.signup[p.id]; return v === undefined ? (p.signup || '') : v; }
-  function warm(p, t) {
-    var s = signupOf(p);
+  var ACCTS = ['gen', 'dev'];
+  var ON_PHONE = IN_APP || IS_ANDROID || /iPhone|iPad/.test(navigator.userAgent);
+  // 할 일이 어느 계정 것인지: 따로 적지 않으면 글 올리기는 개발, 플랫폼이 붙은 그 밖의 일은 일반
+  function acctOf(t) { return t.acct || (t.post ? 'dev' : (t.platforms && t.platforms.length ? 'gen' : '')); }
+  // 계정 설정: 가입일과 그 계정을 쓰는 곳(app 폰 앱, web 폰 브라우저, switch 앱 안에서 전환, pc PC 브라우저)
+  function aget(p, a) {
+    var o = (S.acct[p.id] || {})[a] || {};
+    return {
+      signup: o.signup === undefined ? ((p.signup || {})[a] || '') : o.signup,
+      where: o.where || (a === 'dev' ? 'pc' : (p.pkg ? 'app' : 'web'))
+    };
+  }
+  function aset(p, a, k, v) { var x = S.acct[p.id] = S.acct[p.id] || {}; (x[a] = x[a] || {})[k] = v; }
+  function warm(p, t, a) {
+    var s = aget(p, a || 'gen').signup;
     if (!s) return { state: 'none' };
     var days = dayDiff(t, parse(s));
     if (days < D.warmupDays) return { state: 'warm', days: days, left: D.warmupDays - days };
     return { state: 'ok', days: days };
+  }
+  function link(href, text) { return '<a class="btn pri" href="' + h(href) + '"' + ext(href) + '>' + h(text) + '</a>'; }
+  // 계정이 있는 곳에 맞는 열기 버튼
+  function openBtn(p, a, label) {
+    var w = aget(p, a).where;
+    if (!ON_PHONE) return link(p.web, label + ' 열기'); // PC 브라우저에서는 항상 웹
+    if (w === 'pc') return '<button class="btn" data-copy="' + h(p.web) + '" data-msg="PC에서 쓰는 계정입니다. 주소를 복사했습니다">' + h(label) + ' · PC에서</button>';
+    if (w === 'web' || !p.pkg) return link(p.web, label + ' 웹 열기');
+    return link(launchHref(p), label + ' 열기') + (w === 'switch' ? '<span class="hint">앱에서 프로필 사진을 길게 눌러 계정 전환</span>' : '');
   }
   function launchHref(p) {
     if (!p.pkg) return p.web;
@@ -222,21 +249,23 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
   // ---------- 그리기 도우미 ----------
   function h(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function tag(r) { return r && r !== 'all' ? '<span class="tag" style="background:' + D.regions[r].color + '">' + D.regions[r].name + '</span>' : ''; }
+  function atag(a) { return a ? '<span class="tag out" style="color:' + D.accounts[a].color + '">' + D.accounts[a].name + '</span>' : ''; }
   function inFilter(r) { return S.filter === 'all' || r === S.filter; }
+  function inAcct(a) { return S.fa === 'all' || a === S.fa; }
+  function vis(t) { return inFilter(t.region || 'all') && inAcct(acctOf(t)); }
   function postBadge(t, today) {
     if (!t.post) return '';
     var none = [], warmL = 0;
-    t.post.forEach(function (id) { var w = warm(P[id], today); if (w.state === 'none') none.push(P[id].name); else if (w.state === 'warm') warmL = Math.max(warmL, w.left); });
+    t.post.forEach(function (id) { var w = warm(P[id], today, acctOf(t)); if (w.state === 'none') none.push(P[id].name); else if (w.state === 'warm') warmL = Math.max(warmL, w.left); });
     if (none.length) return '<span class="badge">미가입: ' + h(none.join(', ')) + '</span>';
     if (warmL) return '<span class="badge">워밍업 ' + warmL + '일 남음 · 아직 올리지 않기</span>';
     return '';
   }
-  function platBtns(ids) {
+  function platBtns(ids, a) {
     if (!ids || !ids.length) return '';
     return '<div class="btns">' + ids.map(function (id) {
-      var p = P[id], href = launchHref(p);
-      return '<a class="btn pri" href="' + h(href) + '"' + ext(href) + '>' + h(p.name) + ' 열기</a>' +
-        '<button class="btn" data-guide="' + id + '">가이드</button>';
+      var p = P[id];
+      return openBtn(p, a, p.name) + '<button class="btn" data-guide="' + id + '">가이드</button>';
     }).join('') + '</div>';
   }
   function taskHtml(t, key, today, opt) {
@@ -246,11 +275,11 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
     return '<div class="task' + (on ? ' done' : '') + '">' +
       '<label class="chk"><input type="checkbox" data-key="' + h(key) + '"' + (t.done ? ' data-def="1"' : '') + (on ? ' checked' : '') + '></label>' +
       '<div class="body" data-open="' + h(key) + '">' +
-      '<div class="title">' + (t.star ? '<span class="star">★</span>' : '') + h(t.title) + tag(t.region) +
+      '<div class="title">' + (t.star ? '<span class="star">★</span>' : '') + h(t.title) + tag(t.region) + atag(acctOf(t)) +
       (opt.badge || '') + (on ? '' : postBadge(t, today)) + '</div>' +
       (hasDetail && isOpen ? '<div class="detail">' + (t.detail ? '<p>' + h(t.detail) + '</p>' : '') +
         (t.region && D.regions[t.region] && D.regions[t.region].time ? '<p>' + h(D.regions[t.region].time) + '</p>' : '') +
-        platBtns(t.platforms) + (opt.extra || '') + '</div>' : '') +
+        platBtns(t.platforms, acctOf(t) || 'gen') + (opt.extra || '') + '</div>' : '') +
       '</div></div>';
   }
   function section(title, small, items) {
@@ -277,7 +306,7 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
     return list;
   }
   function renderToday(d) {
-    var out = '', items = todayItems(d).filter(function (x) { return inFilter(x.t.region || 'all'); });
+    var out = '', items = todayItems(d).filter(function (x) { return vis(x.t); });
 
     // 기간 안내
     D.calendar.forEach(function (c) {
@@ -288,8 +317,14 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
       } else out += '<div class="info"><b>' + h(c.title) + '</b> (' + h(c.when) + ') · ' + h(c.todo) + '</div>';
     });
     // 워밍업 안내
-    var warms = D.platforms.filter(function (p) { return inFilter(p.region) && warm(p, d).state === 'warm'; });
-    if (warms.length) out += '<div class="note">' + warms.map(function (p) { var w = warm(p, d); return h(p.name) + ' 가입 ' + w.days + '일째, 워밍업 ' + w.left + '일 남음'; }).join(' · ') + '. 좋아요와 댓글만 하고 글은 아직 올리지 않습니다.</div>';
+    var warms = [];
+    D.platforms.forEach(function (p) {
+      ACCTS.forEach(function (a) {
+        var w = warm(p, d, a);
+        if (inFilter(p.region) && inAcct(a) && w.state === 'warm') warms.push(h(p.name) + ' ' + D.accounts[a].name + ' 계정 가입 ' + w.days + '일째, 워밍업 ' + w.left + '일 남음');
+      });
+    });
+    if (warms.length) out += '<div class="note">' + warms.join(' · ') + '. 좋아요와 댓글만 하고 글은 아직 올리지 않습니다.</div>';
 
     ['all', 'cn', 'jp', 'ru'].forEach(function (r) {
       var rows = items.filter(function (x) { return x.group === 'daily' && x.t.region === r; });
@@ -303,7 +338,7 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
     var mon = mondayOf(d), late = [];
     D.weekly.forEach(function (t) {
       var due = addDays(mon, (t.dow + 6) % 7);
-      if (due < d && !isOn(kWeek(d, t.id)) && inFilter(t.region) && !postBadge(t, d)) late.push(taskHtml(t, kWeek(d, t.id), d, { badge: '<span class="badge">' + DOW[t.dow] + '요일</span>' }));
+      if (due < d && !isOn(kWeek(d, t.id)) && vis(t) && !postBadge(t, d)) late.push(taskHtml(t, kWeek(d, t.id), d, { badge: '<span class="badge">' + DOW[t.dow] + '요일</span>' }));
     });
     S.custom.forEach(function (c) {
       if (c.date < ymd(d) && !isOn('c:' + c.id) && inFilter(c.region || 'all')) late.push(taskHtml({ title: c.text, region: c.region }, 'c:' + c.id, d, { badge: '<span class="badge">' + h(c.date.slice(5)) + '</span>' }));
@@ -311,19 +346,19 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
     out += section('밀린 일', '이번 주 안에', late);
 
     // 격주·월 1회
-    var per = D.periodic.filter(function (t) { return inFilter(t.region) && !isOn(kPeriod(d, t)); })
+    var per = D.periodic.filter(function (t) { return vis(t) && !isOn(kPeriod(d, t)); })
       .map(function (t) { return taskHtml(t, kPeriod(d, t), d, { badge: '<span class="badge">' + (t.period === 'month' ? '월 1회' : '격주') + '</span>' }); });
     out += section('이번 기간에 한 번', '끝내면 사라짐', per);
 
     // 지금 단계
     var ph = D.phases[S.phase] || D.phases[0];
-    var todo = ph.items.filter(function (t) { return inFilter(t.region) && !isOn('o:' + t.id, t.done); });
+    var todo = ph.items.filter(function (t) { return vis(t) && !isOn('o:' + t.id, t.done); });
     out += section(ph.name, '남은 ' + todo.length + ' / ' + ph.items.length, todo.map(function (t) { return taskHtml(t, 'o:' + t.id, d); }));
 
     return out || '<div class="empty">표시할 일이 없습니다.</div>';
   }
   function progress(d) {
-    var items = todayItems(d).filter(function (x) { return inFilter(x.t.region || 'all'); });
+    var items = todayItems(d).filter(function (x) { return vis(x.t); });
     var done = items.filter(function (x) { return isOn(x.key); }).length;
     return { done: done, total: items.length };
   }
@@ -333,11 +368,11 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
     var out = '', mon = mondayOf(d);
     [1, 2, 3, 4, 5, 6, 0].forEach(function (dow) {
       var day = addDays(mon, (dow + 6) % 7);
-      var rows = D.weekly.filter(function (t) { return t.dow === dow && inFilter(t.region); }).map(function (t) { return taskHtml(t, kWeek(d, t.id), d); });
+      var rows = D.weekly.filter(function (t) { return t.dow === dow && vis(t); }).map(function (t) { return taskHtml(t, kWeek(d, t.id), d); });
       out += section(DOW[dow] + '요일 ' + (day.getMonth() + 1) + '/' + day.getDate() + (ymd(day) === ymd(d) ? ' (오늘)' : ''), '', rows);
     });
-    out += section('격주', biweekKey(d), D.periodic.filter(function (t) { return t.period === 'biweek' && inFilter(t.region); }).map(function (t) { return taskHtml(t, kPeriod(d, t), d); }));
-    out += section('월 1회', monthKey(d), D.periodic.filter(function (t) { return t.period === 'month' && inFilter(t.region); }).map(function (t) { return taskHtml(t, kPeriod(d, t), d); }));
+    out += section('격주', biweekKey(d), D.periodic.filter(function (t) { return t.period === 'biweek' && vis(t); }).map(function (t) { return taskHtml(t, kPeriod(d, t), d); }));
+    out += section('월 1회', monthKey(d), D.periodic.filter(function (t) { return t.period === 'month' && vis(t); }).map(function (t) { return taskHtml(t, kPeriod(d, t), d); }));
     return out;
   }
 
@@ -358,7 +393,7 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
 
     D.phases.forEach(function (ph) {
       var left = ph.items.filter(function (t) { return !isOn('o:' + t.id, t.done); }).length;
-      out += section(ph.name, '남은 ' + left + ' / ' + ph.items.length, ph.items.filter(function (t) { return inFilter(t.region); }).map(function (t) { return taskHtml(t, 'o:' + t.id, d); }));
+      out += section(ph.name, '남은 ' + left + ' / ' + ph.items.length, ph.items.filter(vis).map(function (t) { return taskHtml(t, 'o:' + t.id, d); }));
     });
 
     out += '<h2>연간 달력<small>날짜는 해마다 확인</small></h2><div class="card"><table><tr><th>시기</th><th>내용</th><th>할 일</th></tr>' +
@@ -370,20 +405,24 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
 
   // ---------- 바로가기 ----------
   function renderLinks(d) {
-    var out = '';
+    var out = '<div class="info">' + ACCTS.map(function (a) { return atag(a) + ' ' + h(D.accounts[a].desc); }).join('<br>') + '</div>';
     ['cn', 'jp', 'ru'].forEach(function (r) {
       if (!inFilter(r)) return;
       out += '<h2>' + D.regions[r].name + '<small>' + h(D.regions[r].time || '') + '</small></h2><div class="card">' +
         D.platforms.filter(function (p) { return p.region === r; }).map(function (p) {
-          var w = warm(p, d), href = launchHref(p);
-          var st = w.state === 'none' ? '미가입' : w.state === 'warm' ? '가입 ' + w.days + '일째 · 워밍업 ' + w.left + '일 남음' : '가입 ' + w.days + '일째 · 글 올려도 됨';
           return '<div class="plat"><div class="row" style="justify-content:space-between"><div><div class="name">' + h(p.name) +
             (p.native !== p.name ? ' <span style="color:var(--sub);font-weight:400">' + h(p.native) + '</span>' : '') + '</div>' +
-            '<div class="meta">' + h(p.tier) + ' · ' + st + '</div></div>' +
-            '<div class="btns" style="margin:0"><a class="btn pri" href="' + h(href) + '"' + ext(href) + '>' + (p.pkg ? '앱 열기' : '웹 열기') + '</a>' +
-            (p.pkg ? '<a class="btn" href="' + h(p.web) + '"' + ext(p.web) + '>웹</a>' : '') +
-            '<button class="btn" data-guide="' + p.id + '">가이드</button></div></div>' +
-            '<div class="row meta" style="margin-top:8px"><span>가입일</span><input type="date" data-signup="' + p.id + '" value="' + h(signupOf(p)) + '"></div></div>';
+            '<div class="meta">' + h(p.tier) + '</div></div>' +
+            '<div class="btns" style="margin:0"><button class="btn" data-guide="' + p.id + '">가이드</button></div></div>' +
+            ACCTS.filter(inAcct).map(function (a) {
+              var w = warm(p, d, a), g = aget(p, a);
+              var st = w.state === 'none' ? '미가입' : w.state === 'warm' ? '가입 ' + w.days + '일째 · 워밍업 ' + w.left + '일 남음' : '가입 ' + w.days + '일째' + (a === 'dev' ? ' · 글 올려도 됨' : '');
+              var opts = [['app', '폰 앱'], ['web', '폰 브라우저'], ['switch', '앱 안에서 전환'], ['pc', 'PC']].filter(function (o) { return p.pkg || (o[0] !== 'app' && o[0] !== 'switch'); });
+              return '<div class="acct"><div class="row" style="justify-content:space-between"><div class="meta">' + atag(a) + ' ' + st + '</div>' +
+                '<div class="btns" style="margin:0">' + openBtn(p, a, D.accounts[a].name) + '</div></div>' +
+                '<div class="row meta" style="margin-top:6px"><span>가입일</span><input type="date" data-signup="' + p.id + '" data-acct="' + a + '" value="' + h(g.signup) + '">' +
+                '<select data-where="' + p.id + '" data-acct="' + a + '">' + opts.map(function (o) { return '<option value="' + o[0] + '"' + (g.where === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>';
+            }).join('') + '</div>';
         }).join('') + '</div>';
     });
     out += '<h2>운영 원칙</h2><div class="card"><ul class="plain">' + D.principles.map(function (x) { return '<li>' + h(x) + '</li>'; }).join('') + '</ul></div>';
@@ -391,10 +430,10 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
     return out;
   }
   function guideHtml(p) {
-    var ph = D.phrases[p.region] || [], href = launchHref(p);
+    var ph = D.phrases[p.region] || [];
     return '<h3>' + h(p.name) + ' <span style="font-weight:400;color:var(--sub);font-size:14px">' + h(p.native) + '</span></h3>' +
       '<p style="color:var(--sub);font-size:13px">' + h(p.tier) + ' · ' + h(D.regions[p.region].time || '') + '</p>' +
-      '<div class="btns"><a class="btn pri" href="' + h(href) + '"' + ext(href) + '>' + (p.pkg ? '앱 열기' : '웹 열기') + '</a><a class="btn" href="' + h(p.web) + '"' + ext(p.web) + '>웹으로 열기</a><button class="btn" data-close="1">닫기</button></div>' +
+      '<div class="btns">' + openBtn(p, 'gen', '일반 계정') + openBtn(p, 'dev', '개발 계정') + '<button class="btn" data-close="1">닫기</button></div>' +
       '<h4>어떤 곳</h4><p>' + h(p.about) + '</p>' +
       '<h4>올리는 형식</h4><p>' + h(p.post) + '</p>' +
       '<h4>말투</h4><p>' + h(p.tone) + '</p>' +
@@ -449,6 +488,8 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
     $('barfill').style.width = (pr.total ? pr.done / pr.total * 100 : 0) + '%';
     $('filters').innerHTML = [['all', '전체'], ['cn', '중국'], ['jp', '일본'], ['ru', '러시아']].map(function (f) {
       return '<button class="chip' + (S.filter === f[0] ? ' on' : '') + '" data-filter="' + f[0] + '">' + f[1] + '</button>';
+    }).join('') + '<span class="sep"></span>' + [['all', '두 계정'], ['gen', '일반'], ['dev', '개발']].map(function (f) {
+      return '<button class="chip' + (S.fa === f[0] ? ' on' : '') + '" data-fa="' + f[0] + '">' + f[1] + '</button>';
     }).join('');
     $('tabs').innerHTML = TABS.map(function (t) { return '<button data-tab="' + t[0] + '"' + (S.tab === t[0] ? ' class="on"' : '') + '><span>' + t[2] + '</span>' + t[1] + '</button>'; }).join('');
     var fn = { today: renderToday, week: renderWeek, plan: renderPlan, links: renderLinks, log: renderLog }[S.tab] || renderToday;
@@ -456,23 +497,24 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
   }
   var toastT;
   function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('show'); }, 1400); }
-  function copy(text) {
+  function copy(text, msg) {
     function fallback() {
       var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
       document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); toast('복사했습니다'); } catch (e) { toast('복사하지 못했습니다'); }
+      try { document.execCommand('copy'); toast(msg || '복사했습니다'); } catch (e) { toast('복사하지 못했습니다'); }
       document.body.removeChild(ta);
     }
-    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(function () { toast('복사했습니다'); }, fallback);
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(function () { toast(msg || '복사했습니다'); }, fallback);
     else fallback();
   }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
   document.addEventListener('click', function (e) {
     var t = e.target, el;
-    if ((el = t.closest('[data-copy]'))) { copy(el.getAttribute('data-copy')); return; }
+    if ((el = t.closest('[data-copy]'))) { copy(el.getAttribute('data-copy'), el.getAttribute('data-msg')); return; }
     if ((el = t.closest('[data-guide]'))) { $('panel').innerHTML = guideHtml(P[el.getAttribute('data-guide')]); $('sheet').hidden = false; return; }
     if (t.closest('[data-close]') || t === $('sheet')) { $('sheet').hidden = true; return; }
+    if ((el = t.closest('[data-fa]'))) { S.fa = el.getAttribute('data-fa'); save(); render(); return; }
     if ((el = t.closest('[data-filter]'))) { S.filter = el.getAttribute('data-filter'); save(); render(); return; }
     if ((el = t.closest('[data-tab]'))) { S.tab = el.getAttribute('data-tab'); save(); render(); window.scrollTo(0, 0); return; }
     if ((el = t.closest('[data-set]'))) { S.checks[el.getAttribute('data-set')] = true; save(); render(); return; }
@@ -509,7 +551,8 @@ nav.tabs button.on { color: var(--accent); font-weight: 700; }
       else delete S.checks[key];
       save(); render(); return;
     }
-    if (t.matches('[data-signup]')) { S.signup[t.getAttribute('data-signup')] = t.value; save(); render(); return; }
+    if (t.matches('[data-signup]')) { aset(P[t.getAttribute('data-signup')], t.getAttribute('data-acct'), 'signup', t.value); save(); render(); return; }
+    if (t.matches('[data-where]')) { aset(P[t.getAttribute('data-where')], t.getAttribute('data-acct'), 'where', t.value); save(); render(); return; }
     if (t.id === 'phase') { S.phase = +t.value; save(); render(); return; }
     if (t.matches('[data-log]')) {
       var id = t.getAttribute('data-log'), f = t.getAttribute('data-f');
