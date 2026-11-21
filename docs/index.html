@@ -672,7 +672,7 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
     if (t.closest('[data-close]') || t === $('sheet')) { $('sheet').hidden = true; return; }
     if ((el = t.closest('[data-fa]'))) { S.fa = el.getAttribute('data-fa'); save(); render(); return; }
     if ((el = t.closest('[data-filter]'))) { S.filter = el.getAttribute('data-filter'); save(); render(); return; }
-    if ((el = t.closest('[data-tab]'))) { S.tab = el.getAttribute('data-tab'); save(); render(); window.scrollTo(0, 0); return; }
+    if ((el = t.closest('[data-tab]'))) { var nt = el.getAttribute('data-tab'); if (nt !== S.tab) { hist.push(S.tab); if (hist.length > 20) hist.shift(); } S.tab = nt; save(); render(); window.scrollTo(0, 0); return; }
     if ((el = t.closest('[data-set]'))) { S.checks[el.getAttribute('data-set')] = true; save(); render(); return; }
     if ((el = t.closest('[data-del]'))) { var id = el.getAttribute('data-del'); S.custom = S.custom.filter(function (c) { return c.id !== id; }); delete S.checks['c:' + id]; save(); render(); return; }
     if ((el = t.closest('[data-dellog]'))) { var lid = el.getAttribute('data-dellog'); S.log = S.log.filter(function (c) { return c.id !== lid; }); save(); render(); return; }
@@ -726,6 +726,16 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
     if ($('trcount')) $('trcount').textContent = S.tr.src.length + '자';
     if ($('trprev')) $('trprev').textContent = buildPrompt();
   });
+  // 뒤로 가기: 열린 창 닫기 → 펼친 항목 접기 → 이전 탭 → 오늘 탭. 더 돌아갈 곳이 없으면 false(앱이 종료 안내를 띄운다).
+  var hist = [];
+  window.appBack = function () {
+    if (!$('sheet').hidden) { $('sheet').hidden = true; return true; }
+    if (document.activeElement && /^(TEXTAREA|INPUT|SELECT)$/.test(document.activeElement.tagName)) { document.activeElement.blur(); return true; }
+    for (var k in open) if (open[k]) { open = {}; render(); return true; }
+    if (hist.length) { S.tab = hist.pop(); save(); render(); window.scrollTo(0, 0); return true; }
+    if (S.tab !== 'today') { S.tab = 'today'; save(); render(); window.scrollTo(0, 0); return true; }
+    return false;
+  };
   var shown = ymd(now());
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden && ymd(now()) !== shown) { shown = ymd(now()); render(); }

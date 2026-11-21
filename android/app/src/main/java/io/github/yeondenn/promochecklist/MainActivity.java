@@ -18,6 +18,7 @@ public class MainActivity extends Activity {
     private static final String HOME_PATH = "/promo-checklist";
 
     private WebView web;
+    private long lastBack;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -108,10 +109,18 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (web.canGoBack()) {
-            web.goBack();
-        } else {
-            super.onBackPressed();
-        }
+        // 페이지에 먼저 묻는다: 닫을 창이나 돌아갈 탭이 있으면 페이지가 처리한다.
+        web.evaluateJavascript("(window.appBack && window.appBack()) ? 1 : 0", value -> {
+            if ("1".equals(value)) {
+                return;
+            }
+            long now = System.currentTimeMillis();
+            if (now - lastBack < 2000) {
+                finish();
+            } else {
+                lastBack = now;
+                Toast.makeText(this, "한 번 더 뒤로가면 앱을 종료합니다", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
