@@ -1,0 +1,12 @@
+{
+  "name": "홍보 체크리스트",
+  "short_name": "홍보 체크",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#14161d",
+  "theme_color": "#1d2030",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
