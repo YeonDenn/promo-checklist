@@ -634,8 +634,9 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
   function renderGit() {
     if (!ghOk()) {
       return '<h2>과제 저장소 연결</h2><div class="card"><div class="form">' +
-        '<input type="text" id="ghrepo" placeholder="저장소 (주인/이름)" autocapitalize="off" autocomplete="off" spellcheck="false" value="' + h(S.gh.repo) + '">' +
+        '<input type="text" id="ghrepo" placeholder="저장소 (예: 주인아이디/저장소이름)" autocapitalize="off" autocomplete="off" spellcheck="false" value="' + h(S.gh.repo) + '">' +
         '<input type="password" id="ghtoken" placeholder="GitHub 토큰" autocomplete="off">' +
+        '<div class="count">저장소 칸에는 GitHub 저장소 주소에서 github.com/ 뒤에 오는 두 마디를 적습니다. 주소를 통째로 붙여넣어도 됩니다.</div>' +
         '<div class="btns" style="margin:0"><button class="btn pri" id="ghsave">연결</button></div></div></div>' +
         '<div class="note"><b>토큰은 이 기기에만 저장됩니다.</b> 이 앱은 과제 목록을 읽기만 하고, 백업 내보내기에도 토큰을 넣지 않습니다. 다만 저장소 협업자가 만들 수 있는 토큰은 권한이 넓으니 만료일을 30~90일로 짧게 잡고, 폰을 잃어버리면 GitHub에서 바로 지우세요.</div>' +
         '<div class="info"><b>토큰 만드는 법</b><br>GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token → <b>repo</b> 하나만 체크 → 만료일 설정 → 만든 값을 위 칸에 붙여넣기</div>';
@@ -752,7 +753,7 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
     }
     if (t.id === 'ghsave') {
       var repo = $('ghrepo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, ''), tok = $('ghtoken').value.trim();
-      if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || !tok) { toast('저장소(주인/이름)와 토큰을 적어 주세요'); return; }
+      if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || !tok) { toast('저장소는 주인아이디/저장소이름 형식으로, 토큰과 함께 적어 주세요'); return; }
       S.gh.repo = repo; S.gh.token = tok; S.gh.login = ''; S.ghc = null; G.error = ''; G.tried = true; save(); ghLoad(); return;
     }
     if (t.id === 'ghload') { G.tried = true; ghLoad(); return; }
