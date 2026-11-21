@@ -1,5 +1,5 @@
 // 인터넷이 되면 항상 새 내용을 받고, 안 되면 마지막으로 받은 내용을 보여 준다.
-var CACHE = 'promo-checklist-v3';
+var CACHE = 'promo-checklist-v4';
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(['./', 'index.html', 'data.js', 'manifest.json', 'icon.png', 'logo.png']); }).catch(function () {}));
   self.skipWaiting();
