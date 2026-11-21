@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">홍보 체크</string>
     <color name="bg">#FFFFFF</color>
-    <color name="icon_bg">#FFFFFF</color>
+    <color name="icon_bg">#5A0319</color>
     <style name="AppTheme" parent="android:Theme.DeviceDefault.Light.NoActionBar">
         <item name="android:windowBackground">@color/bg</item>
         <item name="android:statusBarColor">@color/bg</item>

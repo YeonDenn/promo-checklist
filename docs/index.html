@@ -24,7 +24,16 @@ header.top {
   position: sticky; top: 0; z-index: 5; background: var(--bg);
   padding: 16px 16px 10px; border-bottom: 1px solid var(--line);
 }
-.toprow { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.toprow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.logo { border: 0; padding: 0; background: none; cursor: pointer; flex: none; line-height: 0; }
+.logo img { border-radius: 10px; display: block; }
+.about { text-align: center; padding-top: 6px; }
+.about img { border-radius: 22px; }
+.about h3 { margin-top: 12px; }
+.about .tags { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 10px 0 4px; }
+.about .tags span { font-size: 12px; border: 1px solid var(--line2); border-radius: 999px; padding: 3px 10px; color: #444; }
+.about-body h4:first-child { margin-top: 18px; }
 .date { font-size: 22px; font-weight: 800; letter-spacing: -.03em; }
 .prog { font-size: 13px; color: var(--sub); font-variant-numeric: tabular-nums; }
 .bar { height: 3px; background: var(--line); border-radius: 2px; margin-top: 10px; overflow: hidden; }
@@ -154,7 +163,7 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
 </head>
 <body>
 <header class="top">
-  <div class="toprow"><div class="date" id="date"></div><div class="prog" id="prog"></div></div>
+  <div class="toprow"><div class="brand"><button class="logo" data-about="1" aria-label="앱 정보"><img src="logo.png" width="34" height="34" alt="JojiBrothers"></button><div class="date" id="date"></div></div><div class="prog" id="prog"></div></div>
   <div class="bar"><i id="barfill" style="width:0"></i></div>
   <div class="filters" id="filters"></div>
 </header>
@@ -473,6 +482,22 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
       }).join('') : '');
   }
 
+  function aboutHtml() {
+    return '<div class="about"><img src="logo.png" width="84" height="84" alt="">' +
+      '<h3>JojiBrothers</h3>' +
+      '<div class="tags"><span>2인 게임 개발</span><span>Gamedev</span><span>Indie</span></div></div>' +
+      '<div class="about-body">' +
+      '<h4>이 앱은</h4><p>해외 커뮤니티 활동을 매일 빠뜨리지 않고 하기 위한 개인용 체크리스트입니다. 중국·일본·러시아 플랫폼에서 오늘 할 일을 보여 주고, 버튼 하나로 해당 앱이나 사이트를 엽니다.</p>' +
+      '<h4>쓰는 법</h4><ul class="plain" style="padding-top:0;padding-bottom:0">' +
+      '<li><b>오늘</b>: 매일 할 일과 오늘 요일의 일. 날짜가 바뀌면 매일 항목은 비워집니다.</li>' +
+      '<li><b>항목 누르기</b>: 설명, 열기 버튼, 플랫폼 가이드(말투·금지 사항·복사할 문장).</li>' +
+      '<li><b>계정</b>: 일반 계정은 폰, 개발 계정은 PC. 필터로 나눠 봅니다.</li>' +
+      '<li><b>바로가기</b>: 플랫폼별 열기 버튼과 가입일. 워밍업 남은 날을 계산합니다.</li>' +
+      '<li><b>기록</b>: 최근 7일 달성률과 글 반응 기록.</li></ul>' +
+      '<h4>저장</h4><p>체크와 기록은 이 기기에만 저장됩니다. 계정 정보나 비밀번호는 다루지 않습니다.</p>' +
+      '<div class="btns"><button class="btn pri" data-close="1">닫기</button></div></div>';
+  }
+
   // ---------- 기록 ----------
   function dayRate(day) {
     var list = todayItems(day), done = list.filter(function (x) { return isOn(x.key); }).length;
@@ -541,6 +566,7 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
   document.addEventListener('click', function (e) {
     var t = e.target, el;
     if ((el = t.closest('[data-copy]'))) { copy(el.getAttribute('data-copy'), el.getAttribute('data-msg')); return; }
+    if (t.closest('[data-about]')) { $('panel').innerHTML = aboutHtml(); $('sheet').hidden = false; return; }
     if ((el = t.closest('[data-guide]'))) { $('panel').innerHTML = guideHtml(P[el.getAttribute('data-guide')]); $('sheet').hidden = false; return; }
     if (t.closest('[data-close]') || t === $('sheet')) { $('sheet').hidden = true; return; }
     if ((el = t.closest('[data-fa]'))) { S.fa = el.getAttribute('data-fa'); save(); render(); return; }
