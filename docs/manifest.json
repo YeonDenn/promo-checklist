@@ -1,6 +1,6 @@
 {
-  "name": "홍보 체크리스트",
-  "short_name": "홍보 체크",
+  "name": "JJGamedev",
+  "short_name": "JJGamedev",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

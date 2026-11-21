@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">홍보 체크</string>
+    <string name="app_name">JJGamedev</string>
     <color name="bg">#FFFFFF</color>
     <color name="icon_bg">#5A0319</color>
     <style name="AppTheme" parent="android:Theme.DeviceDefault.Light.NoActionBar">
