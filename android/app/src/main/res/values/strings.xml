@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">홍보 체크</string>
-    <color name="bg">#14161D</color>
-    <color name="icon_bg">#1D2030</color>
-    <style name="AppTheme" parent="android:Theme.DeviceDefault.NoActionBar">
+    <color name="bg">#FFFFFF</color>
+    <color name="icon_bg">#FFFFFF</color>
+    <style name="AppTheme" parent="android:Theme.DeviceDefault.Light.NoActionBar">
         <item name="android:windowBackground">@color/bg</item>
         <item name="android:statusBarColor">@color/bg</item>
         <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 </resources>
