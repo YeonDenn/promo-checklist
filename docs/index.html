@@ -100,6 +100,12 @@ h2 small { font-weight: 400; font-size: 12px; color: var(--sub); text-align: rig
 .plat .name { font-weight: 700; font-size: 16px; letter-spacing: -.02em; }
 .plat .name span { color: var(--sub); font-weight: 400; font-size: 13px; }
 .plat .meta, .meta { font-size: 12px; color: var(--sub); }
+.minor { margin-top: 8px; border: 1px dashed var(--line2); border-radius: 14px; padding: 8px 6px; }
+.mlab { font-size: 11px; color: var(--sub); padding: 2px 8px 4px; }
+.mrow { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: none; padding: 7px 8px; font: inherit; font-size: 13px; color: var(--sub); text-align: left; cursor: pointer; }
+.mrow b { color: var(--ink); font-weight: 600; margin-right: 5px; }
+.mrow img { filter: grayscale(1); opacity: .7; }
+.mrow span { min-width: 0; }
 .acct { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 input[type=date], input[type=text], input[type=number], select, textarea {
@@ -204,6 +210,13 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
   ];
   var P = {};
   D.platforms.forEach(function (p) { P[p.id] = p; });
+  // 비중이 낮은 곳(minor)만 다루는 할 일은 빼고, 섞여 있는 할 일에서는 그 플랫폼만 뺀다.
+  function minor(id) { return !!P[id].minor; }
+  function live(t) { return !(t.platforms && t.platforms.length && t.platforms.every(minor)); }
+  function trimMinor(t) { ['platforms', 'post'].forEach(function (k) { if (t[k]) t[k] = t[k].filter(function (id) { return !minor(id); }); }); return t; }
+  ['daily', 'weekly', 'periodic'].forEach(function (k) { D[k] = D[k].filter(live).map(trimMinor); });
+  D.phases.forEach(function (ph) { ph.items = ph.items.filter(live).map(trimMinor); });
+  var MAIN = D.platforms.filter(function (p) { return !p.minor; });
 
   // ---------- 저장 ----------
   var S = { checks: {}, acct: {}, phase: 0, custom: [], log: [], filter: 'all', fa: 'all', tab: 'today',
@@ -462,7 +475,7 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
     ['cn', 'jp', 'ru'].forEach(function (r) {
       if (!inFilter(r)) return;
       out += '<h2>' + D.regions[r].name + '<small>' + h(D.regions[r].time || '') + '</small></h2><div class="card">' +
-        D.platforms.filter(function (p) { return p.region === r; }).map(function (p) {
+        D.platforms.filter(function (p) { return p.region === r && !p.minor; }).map(function (p) {
           return '<div class="plat"><div class="head">' + pic(p, 46) + '<div class="who"><div class="name">' + h(p.name) +
             (p.native !== p.name ? ' <span>' + h(p.native) + '</span>' : '') + '</div>' +
             '<div class="meta">' + h(p.tier) + '</div></div>' +
@@ -477,6 +490,10 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
                 '<select data-where="' + p.id + '" data-acct="' + a + '">' + opts.map(function (o) { return '<option value="' + o[0] + '"' + (g.where === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>';
             }).join('') + '</div>';
         }).join('') + '</div>';
+      var ms = D.platforms.filter(function (p) { return p.region === r && p.minor; });
+      if (ms.length) out += '<div class="minor"><div class="mlab">지금은 하지 않는 곳 · 누르면 이유가 나옵니다</div>' + ms.map(function (p) {
+        return '<button class="mrow" data-guide="' + p.id + '">' + pic(p, 26) + '<span><b>' + h(p.name) + '</b>' + h(p.short) + '</span></button>';
+      }).join('') + '</div>';
     });
     out += '<h2>운영 원칙</h2><div class="card"><ul class="plain">' + D.principles.map(function (x) { return '<li>' + h(x) + '</li>'; }).join('') + '</ul></div>';
     out += '<h2>퍼 나를 때 주의</h2><div class="card"><ul class="plain">' + D.crosspost.map(function (x) { return '<li>' + h(x) + '</li>'; }).join('') + '</ul></div>';
@@ -486,7 +503,8 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
     var ph = D.phrases[p.region] || [];
     return '<div class="ghead">' + pic(p, 56) + '<div><h3>' + h(p.name) + (p.native !== p.name ? ' <span>' + h(p.native) + '</span>' : '') + '</h3>' +
       '<div class="meta">' + h(p.tier) + ' · ' + h(D.regions[p.region].time || '') + '</div></div></div>' +
-      '<div class="btns">' + openBtn(p, 'gen', '일반 계정') + openBtn(p, 'dev', '개발 계정') + '<button class="btn" data-close="1">닫기</button></div>' +
+      (p.minor ? '<div class="note"><b>지금은 하지 않는 곳입니다.</b> ' + h(p.why) + '</div><div class="btns">' + link(p.web, '웹으로 보기', p) + '<button class="btn" data-close="1">닫기</button></div>' :
+        '<div class="btns">' + openBtn(p, 'gen', '일반 계정') + openBtn(p, 'dev', '개발 계정') + '<button class="btn" data-close="1">닫기</button></div>') +
       '<h4>어떤 곳</h4><p>' + h(p.about) + '</p>' +
       '<h4>올리는 형식</h4><p>' + h(p.post) + '</p>' +
       '<h4>말투</h4><p>' + h(p.tone) + '</p>' +
@@ -501,7 +519,7 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
   var LANG_COL = { cn: 1, jp: 2, ru: 3 };
   function trState() {
     var T = S.tr;
-    if (!P[T.pid]) T.pid = 'xiaoheihe';
+    if (!P[T.pid] || P[T.pid].minor) T.pid = 'xiaoheihe';
     if (T.acct !== 'gen' && T.acct !== 'dev') T.acct = 'dev';
     var kinds = D.translate.kinds[T.acct];
     if (!kinds.some(function (k) { return k[0] === T.kind; })) T.kind = kinds[0][0];
@@ -540,7 +558,7 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
   function renderTr() {
     var T = trState(), p = P[T.pid], X = D.translate, href = claudeHref();
     var out = '<h2>어디에 올릴 글인가요<small>' + h(X.langs[p.region].name) + '</small></h2><div class="card"><div class="pgrid">' +
-      D.platforms.map(function (q) { return '<button class="pchip' + (q.id === T.pid ? ' on' : '') + '" data-tr-p="' + q.id + '">' + pic(q, 30) + h(q.name) + '</button>'; }).join('') + '</div>' +
+      MAIN.map(function (q) { return '<button class="pchip' + (q.id === T.pid ? ' on' : '') + '" data-tr-p="' + q.id + '">' + pic(q, 30) + h(q.name) + '</button>'; }).join('') + '</div>' +
       '<div class="trrow"><span class="lab">계정</span>' + ['dev', 'gen'].map(function (a) { return '<button class="chip' + (T.acct === a ? ' on' : '') + '" data-tr-acct="' + a + '">' + D.accounts[a].name + '</button>'; }).join('') + '</div>' +
       '<div class="trrow"><span class="lab">글 종류</span>' + X.kinds[T.acct].map(function (k) { return '<button class="chip' + (T.kind === k[0] ? ' on' : '') + '" data-tr-kind="' + k[0] + '">' + k[1] + '</button>'; }).join('') + '</div>' +
       '<div class="trrow"><span class="lab">상점 링크</span>' + (p.region === 'cn' ? '<span class="count">중국 플랫폼은 링크를 넣지 않습니다</span>' : T.acct === 'gen' ? '<span class="count">일반 계정 글에는 링크를 넣지 않습니다</span>' :
@@ -590,7 +608,7 @@ nav.tabs button.on { color: var(--ink); font-weight: 700; }
 
     out += '<h2>반응 기록<small>글을 올릴 때마다 한 줄</small></h2><div class="card"><div class="form">' +
       '<div class="row"><input type="date" id="ldate" class="fix" value="' + ymd(d) + '"><select id="lplat">' +
-      D.platforms.map(function (p) { return '<option value="' + p.id + '">' + h(p.name) + '</option>'; }).join('') + '<option value="memo">메모(팔로워 수 등)</option></select></div>' +
+      MAIN.map(function (p) { return '<option value="' + p.id + '">' + h(p.name) + '</option>'; }).join('') + '<option value="memo">메모(팔로워 수 등)</option></select></div>' +
       '<div class="row"><input type="text" id="ltitle" placeholder="글 제목 또는 메모"><button class="btn pri fix" id="ladd">추가</button></div></div>';
     out += S.log.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }).map(function (e) {
       var nm = P[e.platform] ? P[e.platform].name : '메모';

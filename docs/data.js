@@ -17,6 +17,7 @@ window.DATA = {
     ru: { name: '러시아', color: '#2f9e6e', time: '올리기 좋은 시간: 한국 18~21시 (모스크바 낮)' }
   },
 
+  // minor: true 인 곳은 할 일과 번역 탭에서 빼고 바로가기 탭에 참고 정보로만 둔다(short 한 줄, why 설명).
   // pkg: 안드로이드 패키지 이름. 쉼표로 여러 개를 적으면 앞에서부터 설치된 것을 연다.
   platforms: [
     {
@@ -47,7 +48,8 @@ window.DATA = {
       search: ['独立游戏开发', '像素游戏', '像素画', '独立游戏']
     },
     {
-      id: 'tieba', region: 'cn', name: '티에바', native: '百度贴吧', tier: '퍼 나르기',
+      id: 'tieba', minor: true, short: '규모는 크지만 쇠퇴했다', why: '규모는 크지만 쇠퇴했고 새 계정 글이 잘 숨겨진다. 한국 번호로 가입되는지도 확인하지 못했다. 중국 쪽 효과 중 2~3% 정도로 추정(실측 아님). 들이는 시간에 비해 얻는 것이 적어 보류.',
+      region: 'cn', name: '티에바', native: '百度贴吧', tier: '퍼 나르기',
       web: 'https://tieba.baidu.com/', pkg: 'com.baidu.tieba',
       about: '게시판형 포럼. 새 계정 글이 숨겨지기 쉽다. 한국 번호 가입 가능 여부 미확인.',
       post: '샤오헤이허 글을 조금 담백하게 다듬어서. 격주.',
@@ -55,7 +57,8 @@ window.DATA = {
       rules: ['샤오헤이허와 같은 날 같은 글 금지(제목·도입 바꾸고 하루 이상 간격)']
     },
     {
-      id: 'keylol', region: 'cn', name: 'Keylol', native: '其乐', tier: '퍼 나르기',
+      id: 'keylol', minor: true, short: '스팀 골수 유저 포럼, 공개 때 글 하나', why: '스팀 골수 유저 포럼. 사람은 적지만 글 하나당 효율은 좋다. 중국 쪽 효과 중 5~6% 정도로 추정(실측 아님). 매주 올릴 곳은 아니고, 상점 페이지 공개나 데모 때 개발 계정으로 잘 만든 글 하나를 올리는 것을 검토.',
+      region: 'cn', name: 'Keylol', native: '其乐', tier: '퍼 나르기',
       web: 'https://keylol.com/', pkg: '',
       about: '스팀 유저 포럼(웹 전용). 가입 조건 미확인.',
       post: '샤오헤이허 글을 다듬어서. 격주.',
@@ -63,7 +66,8 @@ window.DATA = {
       rules: ['새 계정 글이 숨겨지기 쉬움']
     },
     {
-      id: 'weibo', region: 'cn', name: '웨이보', native: '微博', tier: '퍼 나르기',
+      id: 'weibo', minor: true, short: '팔로워가 없으면 노출되지 않는다', why: '팔로워가 없으면 글이 노출되지 않는다. 중국 쪽 효과 중 1~2% 정도로 추정(실측 아님). 게임이 알려져 공식 계정이 필요해질 때 만들어도 늦지 않다.',
+      region: 'cn', name: '웨이보', native: '微博', tier: '퍼 나르기',
       web: 'https://weibo.com/', pkg: 'com.sina.weibo',
       about: 'SNS. 여유가 생기면. 가입 조건 미확인.',
       post: '빌리빌리 영상 소식.',
@@ -80,7 +84,8 @@ window.DATA = {
       search: ['#インディーゲーム', '#ゲーム制作', '#ドット絵', '#pixelart', '#indiedev', '#ScreenshotSaturday']
     },
     {
-      id: 'note', region: 'jp', name: 'note', native: 'note', tier: '퍼 나르기',
+      id: 'note', minor: true, short: '개발일지를 모아 두는 블로그, 유입은 적다', why: '개발일지 번역본을 모아 두는 블로그라 유입은 적다. 일본은 X에 집중하고, X 계정이 자리 잡은 뒤 여유가 생기면 개발일지를 옮겨 둔다.',
+      region: 'jp', name: 'note', native: 'note', tier: '퍼 나르기',
       web: 'https://note.com/', pkg: 'mu.note',
       about: '블로그. 개발일지 연재에 맞다.',
       post: '제목 【開発日記】… + 소제목 + 이미지. 길어도 됨. 끝에 X 계정 안내.',
@@ -88,7 +93,8 @@ window.DATA = {
       rules: ['자동 번역 티 나는 한자어 직역 금지']
     },
     {
-      id: 'niconico', region: 'jp', name: 'niconico', native: 'ニコニコ', tier: '퍼 나르기',
+      id: 'niconico', minor: true, short: '영상 자막 작업이 필요하고 유입이 적다', why: '영상에 일본어 자막을 넣어야 해서 손이 많이 가고 유입은 적다. 개발일지 영상을 일본어 자막으로 만들게 되면 그때 같이 올린다.',
+      region: 'jp', name: 'niconico', native: 'ニコニコ', tier: '퍼 나르기',
       web: 'https://www.nicovideo.jp/', pkg: 'jp.nicovideo.android',
       about: '영상 + 흐르는 댓글.',
       post: '개발일지 영상(일본어 자막). 제목 【インディーゲーム開発】…. 격주.',
@@ -113,7 +119,8 @@ window.DATA = {
       rules: ['광고처럼 보이는 링크 금지', '정치 언급 금지']
     },
     {
-      id: 'vk', region: 'ru', name: 'VK', native: 'ВКонтакте', tier: '퍼 나르기',
+      id: 'vk', minor: true, short: '새 그룹은 노출이 적다', why: '새로 만든 그룹은 노출이 적고, 한국 번호로 가입되는지도 확인하지 못했다. 러시아 쪽 반응이 커져 공식 그룹이 필요해지면 만든다.',
+      region: 'ru', name: 'VK', native: 'ВКонтакте', tier: '퍼 나르기',
       web: 'https://vk.com/', pkg: 'com.vkontakte.android',
       about: '러시아 최대 SNS. 공식 그룹 운영용. 한국 번호 가입 가능 여부 미확인.',
       post: '짧은 글 1~3문장 + 움짤. 투표(1번 vs 2번)도 자주 쓴다.',
