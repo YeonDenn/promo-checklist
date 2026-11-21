@@ -21,7 +21,7 @@ body {
   padding-bottom: calc(72px + env(safe-area-inset-bottom));
 }
 header.top {
-  position: sticky; top: 0; z-index: 5; background: rgba(255, 255, 255, .97);
+  position: sticky; top: 0; z-index: 5; background: var(--bg);
   padding: 16px 16px 10px; border-bottom: 1px solid var(--line);
 }
 .toprow { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
@@ -120,7 +120,7 @@ th { color: var(--sub); font-weight: 600; border-top: 0; white-space: nowrap; fo
 .logitem .nums label { color: var(--sub); font-size: 12px; }
 nav.tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: flex;
-  background: rgba(255, 255, 255, .97); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom);
+  background: var(--bg); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom);
 }
 nav.tabs button {
   flex: 1; border: 0; background: none; color: var(--faint); font: inherit; font-size: 11px;
